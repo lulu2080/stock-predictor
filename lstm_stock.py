@@ -40,21 +40,38 @@ parser.add_argument('--checkpointDir', type=str, default='d:/ai/stock-predictor/
 FLAGS, _ = parser.parse_known_args()
 
 # Parameters
-batch_size = 30
-time_step = 3
-learning_rate = 0.001
-num_epochs = 10000
-evaluate_every = 50000
-display_step = 10000
+#batch_size = 1000
+#time_step = 22
+#learning_rate = 0.001
+#num_epochs = 10
+#evaluate_every = 10000000
+#display_step = 10000
+#n_input = 3
+#num_classes = 3
+#checkpoint_every = 10000
+#num_checkpoints = 20
+#train_begin = 0
+#train_end = 98000
+#
+## number of units in RNN cell
+#n_hidden = 400
+
+# Parameters
+batch_size = 100
+time_step = 6
+learning_rate = 1e-4
+num_epochs = 100000
+evaluate_every = 1000000
+display_step = 1000000
 n_input = 3
 num_classes = 3
-checkpoint_every = 200000
+checkpoint_every = 1000000
 num_checkpoints = 20
 train_begin = 0
 train_end = 6000
 
 # number of units in RNN cell
-n_hidden = 512
+n_hidden = 300
 
 print("Loaded data...")
 batch_index, train_x, train_y = data_helper.get_train_data(batch_size, time_step, train_begin, train_end)
@@ -76,9 +93,11 @@ y = tf.placeholder("float", [None, time_step, num_classes])
 
 # RNN output node weights and biases
 weights = {
+#    'in': tf.Variable(tf.random_normal([n_input, n_hidden])), 
     'out': tf.Variable(tf.random_normal([n_hidden, num_classes]))
 }
 biases = {
+#    'in': tf.Variable(tf.random_normal([n_hidden])), 
     'out': tf.Variable(tf.random_normal([num_classes]))
 }
 
@@ -87,13 +106,13 @@ def RNN(x, weights, biases):
     # reshape to [1, n_input]
     x = tf.reshape(x, [-1, n_input])
 
-    # Generate a n_input-element sequence of inputs
-    # (eg. [had] [a] [general] -> [20] [6] [33])
     x = tf.split(x, n_input, 1)
+
 
     # 2-layer LSTM, each layer has n_hidden units.
     # Average Accuracy= 95.20% at 50k iter
-    rnn_cell = rnn.MultiRNNCell([rnn.BasicLSTMCell(n_hidden),rnn.BasicLSTMCell(n_hidden)])
+    rnn_cell = rnn.MultiRNNCell([rnn.BasicLSTMCell(n_hidden), rnn.BasicLSTMCell(n_hidden)])
+    rnn_cell.zero_state(batch_size, dtype = tf.float32)
 
     # 1-layer LSTM with n_hidden units but with lower accuracy.
     # Average Accuracy= 90.60% 50k iter
@@ -105,7 +124,20 @@ def RNN(x, weights, biases):
 
     # there are n_input outputs but
     # we only want the last output
-    return tf.matmul(outputs[-1], weights['out']) + biases['out']
+    return tf.nn.softmax(tf.matmul(outputs[-1], weights['out']) + biases['out'])
+
+#def RNN(x, weights, biases):
+#    cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden)
+#    init_state = cell.zero_state(batch_size, dtype = tf.float32)
+#    output_rnn, final_states = tf.nn.dynamic_rnn(cell, x, initial_state=init_state, dtype=tf.float32)  #output_rnn是记录lstm每个输出节点的结果，final_states是最后一个cell的结果
+#    output = tf.reshape(output_rnn, [-1, n_hidden]) #作为输出层的输入
+#
+#    # there are n_input outputs but
+#    # we only want the last output
+#    return tf.matmul(output, weights['out']) + biases['out']
+
+#input_rnn = tf.matmul(tf.reshape(x, [-1, n_input]), weights['in']) + biases['in']
+#input_rnn = tf.reshape(input_rnn, [-1, time_step, n_hidden])
 
 pred = RNN(x, weights, biases)
 
@@ -114,12 +146,22 @@ global_step = tf.Variable(0, name="global_step", trainable=False)
 y_ = tf.reshape(y, [-1,num_classes])
 # Loss and optimizer
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y_))
-optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(cost)
+#optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(cost)
+train_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+
+#optimizer = tf.train.AdamOptimizer(learning_rate)
+#grads_and_vars = optimizer.compute_gradients(cost)
+#train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
 
 # Model evaluation
 correct_pred = tf.equal(tf.argmax(pred,1), tf.argmax(y_,1))
 accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 predictions = tf.argmax(pred, 1, name="predictions")
+
+p_result = tf.Variable(0, name="p_result")
+p_rate = tf.Variable(tf.ones(shape=[3], dtype=tf.float32), name="p_rate")
+get_result = tf.assign(p_result, tf.cast(predictions[-1], tf.int32), name="get_result")
+get_rate = tf.assign(p_rate, pred[-1], name="get_rate")
 #grads_and_vars = optimizer.compute_gradients(cost)
 
 # Initializing the variables
@@ -187,12 +229,13 @@ with tf.Session() as session:
           y: y_batch,
         }
         _, step, acc, loss, pred_result = session.run(
-            [optimizer, global_step, accuracy, cost, pred],
+            [train_op, global_step, accuracy, cost, pred],
             feed_dict)
         time_str = datetime.datetime.now().isoformat()
         print("{}: step {}, loss {:g}, acc {:g}".format(time_str, current_step+1, loss, acc))
 #        train_summary_writer.add_summary(summaries, step)
-        return step, acc, loss, pred_result
+
+        return step, acc, loss, pred_result    
 
     def dev_step(x_batch, y_batch, writer=None):
 #        print("x_test_batch:")
@@ -208,7 +251,7 @@ with tf.Session() as session:
           y: y_batch,
         }
         _, step, acc, loss, pred_result = session.run(
-            [optimizer, global_step, accuracy, cost, pred],
+            [train_op, global_step, accuracy, cost, pred],
             feed_dict)
         time_str = datetime.datetime.now().isoformat()
         print("{}: step {}, loss {:g}, acc {:g}".format(time_str, current_step+1, loss, acc))
@@ -223,6 +266,7 @@ with tf.Session() as session:
     
             step, acc, loss, pred_result = train_step(x_batch, y_batch)
     #        current_step = tf.train.global_step(session, global_step)
+#            print(pred_result)
     
             loss_total += loss
             acc_total += acc

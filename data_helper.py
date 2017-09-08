@@ -24,11 +24,12 @@ with file_io.FileIO(data_file_path, mode="r") as f:
     y_onehot[np.arange(data_y.shape[0]), data_y] = 1.0
 
 #——————————获取训练集——————————
-def get_train_data(batch_size=30, time_step=3, train_begin=0, train_end=6000):
+def get_train_data(batch_size=60, time_step=20, train_begin=0, train_end=6000):
     batch_index = []
     data_train  = data_x[train_begin:train_end]
     label_train = y_onehot[train_begin:train_end]
     normalized_train_data = (data_train-np.mean(data_train,axis=0)) / np.std(data_train,axis=0)  #标准化
+#    normalized_train_data = (data_train - np.min(data_train,axis=0)) / (np.max(data_train,axis=0) - np.min(data_train,axis=0))  #标准化
     train_x, train_y = [], []   #训练集x和y初定义
     for i in range(len(normalized_train_data) - time_step):
        if i % batch_size==0:
@@ -42,9 +43,9 @@ def get_train_data(batch_size=30, time_step=3, train_begin=0, train_end=6000):
 
 
 #——————————获取测试集——————————
-def get_test_data(time_step=3, test_begin=6000):
-    data_test  = data_x[test_begin:]
-    label_test = y_onehot[test_begin:]
+def get_test_data(time_step=20, test_begin=6000):
+    data_test  = data_x[test_begin:test_begin+2000]
+    label_test = y_onehot[test_begin:test_begin+2000]
     mean = np.mean(data_test, axis=0)
     std = np.std(data_test, axis=0)
     normalized_test_data = (data_test-mean) / std  #标准化
