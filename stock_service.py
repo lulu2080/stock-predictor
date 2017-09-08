@@ -20,7 +20,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--innerCode', type=int, default='1',
         help='stock inner code')
 #获得checkpoint路径
-parser.add_argument('--checkpointDir', type=str, default='D:/ai/stock-predictor/model/cloud/runs/1504787597/checkpoints/',
+parser.add_argument('--checkpointDir', type=str, default='D:/ai/stock-predictor/model/cloud/runs/1504844748/checkpoints/',
                         help='output model path')
 FLAGS, _ = parser.parse_known_args()
 
@@ -74,5 +74,6 @@ with graph.as_default():
         sess.run([get_result, get_rate], {input_x: eval_x[0:-1]})
         pred_result, pred_rate = sess.run([p_result, p_rate])
         
+        print(pred_rate)
         print(str(pred_result) + "," + str(pred_rate[pred_result]))
         

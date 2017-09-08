@@ -21,7 +21,7 @@ def get_stock_data(inner_code):
         sql = 'SELECT InnerCode, DATE(TradingDay) TradeDate, TurnoverValue, OpenPrice, ClosePrice, HighPrice, ClosePrice from qt_dailyquote WHERE InnerCode=%s and OpenPrice > 0  ORDER BY InnerCode, TradingDay ASC'
         rowcount = cur.execute(sql, (inner_code))
         print("共查询到{:d}条行情数据。\n".format(rowcount))
-        if rowcount <= 0:
+        if rowcount < 20:
             return None
 
         q, data = [], []

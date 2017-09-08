@@ -4,7 +4,7 @@
 import os
 import pymysql as db
 
-sql_0 = 'select DISTINCT InnerCode from qt_dailyquote ORDER BY InnerCode ASC LIMIT 0,20'
+sql_0 = 'select InnerCode from secumain where InnerCode=1 or (SecuCategory=1 and ListedSector in (1,2,6) and ListedState=1) ORDER BY InnerCode ASC LIMIT 0,100'
 sql_1 = 'select 1 from stock_predictor where InnerCode=%(InnerCode)s and period=%(period)s'
 sql_2 = 'INSERT INTO stock_predictor(InnerCode, result, accRate, period) VALUES(%(InnerCode)s, %(result)s, %(accRate)s, %(period)s)'
 sql_3 = 'UPDATE stock_predictor SET result=%(result)s, accRate=%(accRate)s where InnerCode=%(InnerCode)s and period=%(period)s'
@@ -24,6 +24,8 @@ def main():
             inner_code = row[0]
             ret = os.popen('python stock_service.py --innerCode ' + str(inner_code))
             data = ret.readlines()[-1].strip().split(',')
+            if int(data[0]) == -1:
+                continue
 
             value = {'InnerCode':inner_code, 'result':data[0], 'accRate':data[1], 'period':1}
             
@@ -33,10 +35,10 @@ def main():
             else:
                 cur.execute(sql_3, value)
 
+            conn.commit()
     except db.Error as e:
         print("Mysql Error {:d}:{:s}\n".format(e.args[0], e.args[1]))
     finally:
-        conn.commit()
         cur.close()
         conn.close()
 
