@@ -20,7 +20,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--innerCode', type=int, default='1',
         help='stock inner code')
 #获得checkpoint路径
-parser.add_argument('--checkpointDir', type=str, default='D:/ai/stock-predictor/model/cloud/runs/1504844748/checkpoints/',
+parser.add_argument('--checkpointDir', type=str, default='D:/ai/stock-predictor/model/cloud/runs/1504922801/checkpoints/',
                         help='output model path')
 FLAGS, _ = parser.parse_known_args()
 
@@ -39,15 +39,13 @@ os.remove(eval_file_path)
 mean = np.mean(data_x, axis=0)
 std = np.std(data_x, axis=0)
 normalized_eval_data = (data_x-mean) / std  #标准化
-size = (len(normalized_eval_data) + time_step - 1) // time_step  #有size个sample
+len_data = len(normalized_eval_data)
+size = (len_data + time_step - 1) // time_step  #有size个sample
 eval_x = []
-ii = 0
 for i in range(size - 1):
-   x = normalized_eval_data[i*time_step:(i+1)*time_step]
+   x = normalized_eval_data[len_data-(i+1)*time_step:len_data-i*time_step]
    eval_x.append(x.tolist())
-   ii = i
-eval_x.append((normalized_eval_data[(ii+1)*time_step:]).tolist())
-
+eval_x = eval_x[::-1]
 # Evaluation
 # ==================================================
 
@@ -71,9 +69,7 @@ with graph.as_default():
         get_result = graph.get_operation_by_name("get_result").outputs[0]
         get_rate = graph.get_operation_by_name("get_rate").outputs[0]
 
-        sess.run([get_result, get_rate], {input_x: eval_x[0:-1]})
+        sess.run([get_result, get_rate], {input_x: eval_x[0:]})
         pred_result, pred_rate = sess.run([p_result, p_rate])
         
-        print(pred_rate)
         print(str(pred_result) + "," + str(pred_rate[pred_result]))
-        

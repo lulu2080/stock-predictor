@@ -49,15 +49,14 @@ def get_test_data(time_step=20, test_begin=6000):
     mean = np.mean(data_test, axis=0)
     std = np.std(data_test, axis=0)
     normalized_test_data = (data_test-mean) / std  #标准化
-    size = (len(normalized_test_data) + time_step - 1) // time_step  #有size个sample 
+    len_data = len(normalized_test_data)
+    size = (len_data + time_step - 1) // time_step  #有size个sample 
     test_x,test_y = [],[]
-    ii = 0
     for i in range(size - 1):
-       x = normalized_test_data[i*time_step:(i+1)*time_step]
-       y = label_test[i*time_step:(i+1)*time_step]
+       x = normalized_test_data[len_data-(i+1)*time_step:len_data-i*time_step]
+       y = label_test[len_data-(i+1)*time_step:len_data-i*time_step]
        test_x.append(x.tolist())
        test_y.append(y.tolist())
-       ii = i
-    test_x.append((normalized_test_data[(ii+1)*time_step:]).tolist())
-    test_y.append((label_test[(ii+1)*time_step:]).tolist())
+    test_x = test_x[::-1]
+    test_y = test_y[::-1]
     return mean, std, test_x, test_y

@@ -57,15 +57,15 @@ FLAGS, _ = parser.parse_known_args()
 #n_hidden = 400
 
 # Parameters
-batch_size = 100
+batch_size = 60
 time_step = 6
 learning_rate = 1e-4
-num_epochs = 100000
-evaluate_every = 1000000
-display_step = 1000000
+num_epochs = 200000
+evaluate_every = 5000000
+display_step = 5000000
 n_input = 3
 num_classes = 3
-checkpoint_every = 1000000
+checkpoint_every = 5000000
 num_checkpoints = 20
 train_begin = 0
 train_end = 6000
@@ -287,7 +287,7 @@ with tf.Session() as session:
                 
             if (current_step + 1) % evaluate_every == 0:
                 print("\nEvaluation:")
-                dev_step(test_x[0:-1], test_y[0:-1])
+                dev_step(test_x[0:], test_y[0:])
                 print("")
 
             current_step += 1

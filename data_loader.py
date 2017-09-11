@@ -18,7 +18,7 @@ def get_stock_data(inner_code):
         
         #按股票代码+交易时间升序排序，每四行滑动依次迭代构建训练数据集。
         cur = conn.cursor()
-        sql = 'SELECT InnerCode, DATE(TradingDay) TradeDate, TurnoverValue, OpenPrice, ClosePrice, HighPrice, ClosePrice from qt_dailyquote WHERE InnerCode=%s and OpenPrice > 0  ORDER BY InnerCode, TradingDay ASC'
+        sql = 'SELECT InnerCode, DATE(TradingDay) TradeDate, TurnoverValue, OpenPrice, ClosePrice, HighPrice, ClosePrice from qt_dailyquote WHERE InnerCode=%s and OpenPrice > 0  ORDER BY InnerCode, TradingDay DESC'
         rowcount = cur.execute(sql, (inner_code))
         print("共查询到{:d}条行情数据。\n".format(rowcount))
         if rowcount < 20:
@@ -38,9 +38,9 @@ def get_stock_data(inner_code):
                         data.append(d)
                         del q[0]
                 data_row = np.zeros([3], dtype=decimal.Decimal)
-                data_row[1] = row[3]    #开盘价
+                data_row[2] = row[4]    #收盘价
             data_row[0] += row[2]    #成交额
-            data_row[2] = row[4]    #收盘价
+            data_row[1] = row[3]    #开盘价
             index += 1
 
         #写入csv文件
@@ -54,14 +54,14 @@ def get_stock_data(inner_code):
         conn.close()
 
 def organize_data(q):
-    if abs(q[3][2] - q[3][1]) / q[3][1] <= 0.005:
+    if abs(q[0][2] - q[0][1]) / q[0][1] <= 0.005:
         label = 0
-    elif q[3][2] < q[3][1]:
+    elif q[0][2] < q[0][1]:
         label = 1
     else:
         label = 2
 
-    return [q[0][0], q[1][0], q[2][0], label]
+    return [q[3][0], q[2][0], q[1][0], label]
 
 #def organize_data(q):
 #    if abs(q[1][2] - q[1][1]) / q[1][1] <= 0.005:
@@ -79,7 +79,7 @@ def write_to_csv(data, inner_code):
     csvfile = open(csv_filepath, 'w', newline='')
     writer = csv.writer(csvfile)
     writer.writerow([0, 0, 0, 0, 0, 0])
-    for d in data:
+    for d in data[::-1]:
         writer.writerow(d)   
     csvfile.close()
     return csv_filepath
