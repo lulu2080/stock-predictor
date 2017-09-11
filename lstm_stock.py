@@ -68,7 +68,7 @@ num_classes = 3
 checkpoint_every = 5000000
 num_checkpoints = 20
 train_begin = 0
-train_end = 6000
+train_end = 6500
 
 # number of units in RNN cell
 n_hidden = 300
@@ -76,8 +76,6 @@ n_hidden = 300
 print("Loaded data...")
 batch_index, train_x, train_y = data_helper.get_train_data(batch_size, time_step, train_begin, train_end)
 _, _, test_x, test_y = data_helper.get_test_data(time_step, train_end)
-#print("batch_index")
-#print(batch_index)
 #print("train_x")
 #print(train_x)
 #print("train_y")
@@ -261,8 +259,8 @@ with tf.Session() as session:
 
     for i in range(num_epochs):
         for di in range(len(batch_index) - 1):
-            x_batch = train_x[batch_index[di]:batch_index[di + 1]]
-            y_batch = train_y[batch_index[di]:batch_index[di + 1]]
+            x_batch = train_x[batch_index[di + 1]:batch_index[di]]
+            y_batch = train_y[batch_index[di + 1]:batch_index[di]]
     
             step, acc, loss, pred_result = train_step(x_batch, y_batch)
     #        current_step = tf.train.global_step(session, global_step)

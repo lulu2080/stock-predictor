@@ -24,7 +24,7 @@ parser.add_argument('--checkpointDir', type=str, default='D:/ai/stock-predictor/
                         help='output model path')
 FLAGS, _ = parser.parse_known_args()
 
-eval_file_path = dl.get_stock_data(FLAGS.innerCode)
+eval_file_path, lastTradingDay = dl.get_stock_data(FLAGS.innerCode)
 
 if eval_file_path is None:
     print(-1)
@@ -72,4 +72,6 @@ with graph.as_default():
         sess.run([get_result, get_rate], {input_x: eval_x[0:]})
         pred_result, pred_rate = sess.run([p_result, p_rate])
         
-        print(str(pred_result) + "," + str(pred_rate[pred_result]))
+        date_str = lastTradingDay.strftime('%Y-%m-%d %H:%M:%S')
+
+        print(str(pred_result) + "," + str(pred_rate[pred_result]) + "," + date_str)

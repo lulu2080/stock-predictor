@@ -24,23 +24,40 @@ with file_io.FileIO(data_file_path, mode="r") as f:
     y_onehot[np.arange(data_y.shape[0]), data_y] = 1.0
 
 #——————————获取训练集——————————
+#def get_train_data(batch_size=60, time_step=20, train_begin=0, train_end=6000):
+#    batch_index = []
+#    data_train  = data_x[train_begin:train_end]
+#    label_train = y_onehot[train_begin:train_end]
+#    normalized_train_data = (data_train-np.mean(data_train,axis=0)) / np.std(data_train,axis=0)  #标准化
+##    normalized_train_data = (data_train - np.min(data_train,axis=0)) / (np.max(data_train,axis=0) - np.min(data_train,axis=0))  #标准化
+#    train_x, train_y = [], []   #训练集x和y初定义
+#    for i in range(len(normalized_train_data) - time_step):
+#       if i % batch_size==0:
+#           batch_index.append(i)
+#       x = normalized_train_data[i:i+time_step]
+#       y = label_train[i:i+time_step]
+#       train_x.append(x.tolist())
+#       train_y.append(y.tolist())
+#    batch_index.append((len(normalized_train_data)-time_step))
+#    return batch_index, train_x, train_y
+
 def get_train_data(batch_size=60, time_step=20, train_begin=0, train_end=6000):
     batch_index = []
     data_train  = data_x[train_begin:train_end]
     label_train = y_onehot[train_begin:train_end]
     normalized_train_data = (data_train-np.mean(data_train,axis=0)) / np.std(data_train,axis=0)  #标准化
 #    normalized_train_data = (data_train - np.min(data_train,axis=0)) / (np.max(data_train,axis=0) - np.min(data_train,axis=0))  #标准化
+    len_data = len(normalized_train_data)
     train_x, train_y = [], []   #训练集x和y初定义
-    for i in range(len(normalized_train_data) - time_step):
+    for i in range(len_data - time_step):
        if i % batch_size==0:
            batch_index.append(i)
-       x = normalized_train_data[i:i+time_step]
-       y = label_train[i:i+time_step]
+       x = normalized_train_data[len_data-time_step-i:len_data-i]
+       y = label_train[len_data-time_step-i:len_data-i]
        train_x.append(x.tolist())
        train_y.append(y.tolist())
-    batch_index.append((len(normalized_train_data)-time_step))
-    return batch_index, train_x, train_y
-
+#    batch_index.append((len(normalized_train_data)-time_step))
+    return batch_index[::-1], train_x, train_y
 
 #——————————获取测试集——————————
 def get_test_data(time_step=20, test_begin=6000):

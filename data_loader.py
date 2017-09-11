@@ -21,19 +21,22 @@ def get_stock_data(inner_code):
         sql = 'SELECT InnerCode, DATE(TradingDay) TradeDate, TurnoverValue, OpenPrice, ClosePrice, HighPrice, ClosePrice from qt_dailyquote WHERE InnerCode=%s and OpenPrice > 0  ORDER BY InnerCode, TradingDay DESC'
         rowcount = cur.execute(sql, (inner_code))
         print("共查询到{:d}条行情数据。\n".format(rowcount))
-        if rowcount < 20:
-            return None
+        if rowcount < 40:
+            return None, None
 
         q, data = [], []
+        lastTradingDay = None
         data_row = None
         index = 0
 
         results=cur.fetchall()        
         for row in results:
+            if index == 0:
+                lastTradingDay = row[1]
             if index % 5 == 0:
                 if not data_row is None:
                     q.append(data_row)
-                    if len(q) >= 4:
+                    if len(q) >= 3:
                         d = organize_data(q)
                         data.append(d)
                         del q[0]
@@ -44,7 +47,7 @@ def get_stock_data(inner_code):
             index += 1
 
         #写入csv文件
-        return write_to_csv(data, inner_code)
+        return write_to_csv(data, inner_code), lastTradingDay
         
     except db.Error as e:
         print("Mysql Error {:d}:{:s}\n".format(e.args[0], e.args[1]))
@@ -54,14 +57,7 @@ def get_stock_data(inner_code):
         conn.close()
 
 def organize_data(q):
-    if abs(q[0][2] - q[0][1]) / q[0][1] <= 0.005:
-        label = 0
-    elif q[0][2] < q[0][1]:
-        label = 1
-    else:
-        label = 2
-
-    return [q[3][0], q[2][0], q[1][0], label]
+    return [q[2][0], q[1][0], q[0][0]]
 
 #def organize_data(q):
 #    if abs(q[1][2] - q[1][1]) / q[1][1] <= 0.005:
@@ -78,7 +74,7 @@ def write_to_csv(data, inner_code):
     csv_filepath = temp_data_path + str(inner_code) + timestamp + '.csv'
     csvfile = open(csv_filepath, 'w', newline='')
     writer = csv.writer(csvfile)
-    writer.writerow([0, 0, 0, 0, 0, 0])
+    writer.writerow([0, 0, 0])
     for d in data[::-1]:
         writer.writerow(d)   
     csvfile.close()
