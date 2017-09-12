@@ -4,15 +4,16 @@
 import os
 import pymysql as db
 
-sql_0 = 'select InnerCode from secumain where InnerCode=1 or (SecuCategory=1 and ListedSector in (1,2,6) and ListedState=1) ORDER BY InnerCode ASC LIMIT 2666,684'
-sql_1 = 'select 1 from stock_predictor where InnerCode=%(InnerCode)s and period=%(period)s'
-sql_2 = 'INSERT INTO stock_predictor(InnerCode, result, accRate, lastTradingDay, period) VALUES(%(InnerCode)s, %(result)s, %(accRate)s, %(lastTradingDay)s, %(period)s)'
-sql_3 = 'UPDATE stock_predictor SET result=%(result)s, accRate=%(accRate)s, lastTradingDay=%(lastTradingDay)s where InnerCode=%(InnerCode)s and period=%(period)s'
+sql_0 = 'select InnerCode from secumain where InnerCode=18575 ORDER BY InnerCode ASC LIMIT 0,1'
+#sql_0 = 'select InnerCode from secumain where InnerCode=1 or (SecuCategory=1 and ListedSector in (1,2,6) and ListedState=1) ORDER BY InnerCode ASC LIMIT 0,1'
+sql_1 = 'select 1 from zb_predictor where InnerCode=%(InnerCode)s and period=%(period)s'
+sql_2 = 'INSERT INTO zb_predictor(InnerCode, result, accRate, lastTradingDay, period, created_at, updated_at) VALUES(%(InnerCode)s, %(result)s, %(accRate)s, %(lastTradingDay)s, %(period)s, now(), now())'
+sql_3 = 'UPDATE zb_predictor SET result=%(result)s, accRate=%(accRate)s, lastTradingDay=%(lastTradingDay)s, updated_at=now() where InnerCode=%(InnerCode)s and period=%(period)s'
 
 def main():
     try:
         conn = db.Connect(host='139.196.132.213', 
-                          user='luzhaohui', passwd='zhongba@01', db='zhongba', port=3306, charset='utf8')
+                          user='luzhaohui', passwd='zhongba@01', db='jydb', port=3306, charset='utf8')
         cur = conn.cursor()
         
         #获取所有股票内码列表

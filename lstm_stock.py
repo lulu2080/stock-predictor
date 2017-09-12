@@ -145,11 +145,11 @@ y_ = tf.reshape(y, [-1,num_classes])
 # Loss and optimizer
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y_))
 #optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(cost)
-train_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+#train_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
-#optimizer = tf.train.AdamOptimizer(learning_rate)
-#grads_and_vars = optimizer.compute_gradients(cost)
-#train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
+optimizer = tf.train.AdamOptimizer(learning_rate)
+grads_and_vars = optimizer.compute_gradients(cost)
+train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
 
 # Model evaluation
 correct_pred = tf.equal(tf.argmax(pred,1), tf.argmax(y_,1))
@@ -174,38 +174,38 @@ with tf.Session() as session:
     loss_total = 0
     current_step = 0
 
-#    # Keep track of gradient values and sparsity (optional)
-#    grad_summaries = []
-#    for g, v in grads_and_vars:
-#        if g is not None:
-#            grad_hist_summary = tf.summary.histogram("{}/grad/hist".format(v.name), g)
-#            sparsity_summary = tf.summary.scalar("{}/grad/sparsity".format(v.name), tf.nn.zero_fraction(g))
-#            grad_summaries.append(grad_hist_summary)
-#            grad_summaries.append(sparsity_summary)
-#    grad_summaries_merged = tf.summary.merge(grad_summaries)
+    # Keep track of gradient values and sparsity (optional)
+    grad_summaries = []
+    for g, v in grads_and_vars:
+        if g is not None:
+            grad_hist_summary = tf.summary.histogram("{}/grad/hist".format(v.name), g)
+            sparsity_summary = tf.summary.scalar("{}/grad/sparsity".format(v.name), tf.nn.zero_fraction(g))
+            grad_summaries.append(grad_hist_summary)
+            grad_summaries.append(sparsity_summary)
+    grad_summaries_merged = tf.summary.merge(grad_summaries)
 #
     # Output directory for models and summaries
     timestamp = str(int(time.time()))
     out_dir = os.path.join(FLAGS.checkpointDir, "runs", timestamp)
     print("Writing to {}\n".format(out_dir))
 #
-#    # Summaries for loss and accuracy
-#    loss_summary = tf.summary.scalar("loss", cost)
-#    acc_summary = tf.summary.scalar("accuracy", accuracy)
-#
-#    # Train Summaries
-#    train_summary_op = tf.summary.merge([loss_summary, acc_summary, grad_summaries_merged])
-#    train_summary_dir = os.path.join(out_dir, "summaries", "train")
-#    if not os.path.exists(train_summary_dir):
-#        os.makedirs(train_summary_dir)            
-#    train_summary_writer = tf.summary.FileWriter(train_summary_dir, session.graph)
-#
-#    # Dev summaries
-#    dev_summary_op = tf.summary.merge([loss_summary, acc_summary])
-#    dev_summary_dir = os.path.join(out_dir, "summaries", "dev")
-#    if not os.path.exists(dev_summary_dir):
-#        os.makedirs(dev_summary_dir)
-#    dev_summary_writer = tf.summary.FileWriter(dev_summary_dir, session.graph)
+    # Summaries for loss and accuracy
+    loss_summary = tf.summary.scalar("loss", cost)
+    acc_summary = tf.summary.scalar("accuracy", accuracy)
+
+    # Train Summaries
+    train_summary_op = tf.summary.merge([loss_summary, acc_summary, grad_summaries_merged])
+    train_summary_dir = os.path.join(out_dir, "summaries", "train")
+    if not os.path.exists(train_summary_dir):
+        os.makedirs(train_summary_dir)            
+    train_summary_writer = tf.summary.FileWriter(train_summary_dir, session.graph)
+
+    # Dev summaries
+    dev_summary_op = tf.summary.merge([loss_summary, acc_summary])
+    dev_summary_dir = os.path.join(out_dir, "summaries", "dev")
+    if not os.path.exists(dev_summary_dir):
+        os.makedirs(dev_summary_dir)
+    dev_summary_writer = tf.summary.FileWriter(dev_summary_dir, session.graph)
 
     # Checkpoint directory. Tensorflow assumes this directory already exists so we need to create it
     checkpoint_dir = os.path.join(out_dir, "checkpoints")
@@ -226,12 +226,12 @@ with tf.Session() as session:
           x: x_batch,
           y: y_batch,
         }
-        _, step, acc, loss, pred_result = session.run(
-            [train_op, global_step, accuracy, cost, pred],
+        _, step, summaries, acc, loss, pred_result = session.run(
+            [train_op, global_step, train_summary_op, accuracy, cost, pred],
             feed_dict)
         time_str = datetime.datetime.now().isoformat()
         print("{}: step {}, loss {:g}, acc {:g}".format(time_str, current_step+1, loss, acc))
-#        train_summary_writer.add_summary(summaries, step)
+        train_summary_writer.add_summary(summaries, step)
 
         return step, acc, loss, pred_result    
 
@@ -248,13 +248,13 @@ with tf.Session() as session:
           x: x_batch,
           y: y_batch,
         }
-        _, step, acc, loss, pred_result = session.run(
-            [train_op, global_step, accuracy, cost, pred],
+        _, step, summaries, acc, loss, pred_result = session.run(
+            [train_op, global_step, dev_summary_op, accuracy, cost, pred],
             feed_dict)
         time_str = datetime.datetime.now().isoformat()
         print("{}: step {}, loss {:g}, acc {:g}".format(time_str, current_step+1, loss, acc))
-#        if writer:
-#            writer.add_summary(summaries, step)
+        if writer:
+            writer.add_summary(summaries, step)
 
 
     for i in range(num_epochs):

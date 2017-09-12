@@ -12,7 +12,7 @@ def main():
 def get_stock_data(inner_code):
     try:
         conn = db.Connect(host='139.196.132.213', 
-                          user='luzhaohui', passwd='zhongba@01', db='zhongba', port=3306, charset='utf8')
+                          user='luzhaohui', passwd='zhongba@01', db='jydb', port=3306, charset='utf8')
         
         #按股票代码+交易时间升序排序，每四行滑动依次迭代构建训练数据集。
         cur = conn.cursor()
