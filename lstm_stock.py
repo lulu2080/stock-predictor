@@ -59,19 +59,19 @@ FLAGS, _ = parser.parse_known_args()
 # Parameters
 batch_size = 60
 time_step = 6
-learning_rate = 1e-4
-num_epochs = 200000
-evaluate_every = 5000000
-display_step = 5000000
+learning_rate = 0.0006
+num_epochs = 10000
+evaluate_every = 200000
+display_step = 200000
 n_input = 3
 num_classes = 3
-checkpoint_every = 5000000
+checkpoint_every = 200000
 num_checkpoints = 20
 train_begin = 0
 train_end = 6500
 
 # number of units in RNN cell
-n_hidden = 300
+n_hidden = 400
 
 print("Loaded data...")
 batch_index, train_x, train_y = data_helper.get_train_data(batch_size, time_step, train_begin, train_end)
@@ -99,18 +99,28 @@ biases = {
     'out': tf.Variable(tf.random_normal([num_classes]))
 }
 
+#x1 = tf.reshape(x, [-1, time_step, n_input])
+#x1 = x
+#x2 = tf.reshape(x1, [-1,12,n_input])
+
 def RNN(x, weights, biases):
 
     # reshape to [1, n_input]
-    x = tf.reshape(x, [-1, n_input])
+#    x = tf.reshape(x, [-1, n_input])
+#
+#    x = tf.split(x, n_input, 1)
 
-    x = tf.split(x, n_input, 1)
+#    x = tf.reshape(x, [-1, time_step])
+#
+#    x = tf.split(x, time_step, 1)
+
+    x = tf.reshape(x, [-1, time_step * batch_size, n_input])
 
 
     # 2-layer LSTM, each layer has n_hidden units.
     # Average Accuracy= 95.20% at 50k iter
     rnn_cell = rnn.MultiRNNCell([rnn.BasicLSTMCell(n_hidden), rnn.BasicLSTMCell(n_hidden)])
-    rnn_cell.zero_state(batch_size, dtype = tf.float32)
+#    init_state = rnn_cell.zero_state(batch_size*time_step, dtype = tf.float32)
 
     # 1-layer LSTM with n_hidden units but with lower accuracy.
     # Average Accuracy= 90.60% 50k iter
@@ -118,11 +128,13 @@ def RNN(x, weights, biases):
     # rnn_cell = rnn.BasicLSTMCell(n_hidden)
 
     # generate prediction
-    outputs, states = rnn.static_rnn(rnn_cell, x, dtype=tf.float32)
+#    outputs, states = rnn.static_rnn(rnn_cell, x, dtype=tf.float32)
+    outputs, states = tf.nn.dynamic_rnn(rnn_cell, x, dtype=tf.float32)
 
     # there are n_input outputs but
     # we only want the last output
     return tf.nn.softmax(tf.matmul(outputs[-1], weights['out']) + biases['out'])
+#    return tf.matmul(outputs[-1], weights['out']) + biases['out']
 
 #def RNN(x, weights, biases):
 #    cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden)
@@ -142,12 +154,14 @@ pred = RNN(x, weights, biases)
 global_step = tf.Variable(0, name="global_step", trainable=False)
 
 y_ = tf.reshape(y, [-1,num_classes])
+
 # Loss and optimizer
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y_))
 #optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(cost)
 #train_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
-optimizer = tf.train.AdamOptimizer(learning_rate)
+#optimizer = tf.train.AdamOptimizer(learning_rate)
+optimizer = tf.train.RMSPropOptimizer(learning_rate)
 grads_and_vars = optimizer.compute_gradients(cost)
 train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
 
@@ -261,7 +275,13 @@ with tf.Session() as session:
         for di in range(len(batch_index) - 1):
             x_batch = train_x[batch_index[di + 1]:batch_index[di]]
             y_batch = train_y[batch_index[di + 1]:batch_index[di]]
-    
+        
+#            xx1, xx2 = session.run([x1, x2], {x: x_batch})
+#            print("xx1:")
+#            print(xx1)
+#            print("xx2:")
+#            print(xx2)
+        
             step, acc, loss, pred_result = train_step(x_batch, y_batch)
     #        current_step = tf.train.global_step(session, global_step)
 #            print(pred_result)

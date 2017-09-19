@@ -4,8 +4,8 @@
 import os
 import pymysql as db
 
-sql_0 = 'select InnerCode from secumain where InnerCode=18575 ORDER BY InnerCode ASC LIMIT 0,1'
-#sql_0 = 'select InnerCode from secumain where InnerCode=1 or (SecuCategory=1 and ListedSector in (1,2,6) and ListedState=1) ORDER BY InnerCode ASC LIMIT 0,1'
+#sql_0 = 'select InnerCode from secumain where InnerCode=18575 ORDER BY InnerCode ASC LIMIT 0,1000'
+sql_0 = 'select InnerCode from secumain where InnerCode=1 or (SecuCategory=1 and ListedSector in (1,2,6) and ListedState=1) ORDER BY InnerCode ASC'
 sql_1 = 'select 1 from zb_predictor where InnerCode=%(InnerCode)s and period=%(period)s'
 sql_2 = 'INSERT INTO zb_predictor(InnerCode, result, accRate, lastTradingDay, period, created_at, updated_at) VALUES(%(InnerCode)s, %(result)s, %(accRate)s, %(lastTradingDay)s, %(period)s, now(), now())'
 sql_3 = 'UPDATE zb_predictor SET result=%(result)s, accRate=%(accRate)s, lastTradingDay=%(lastTradingDay)s, updated_at=now() where InnerCode=%(InnerCode)s and period=%(period)s'
@@ -25,6 +25,8 @@ def main():
             inner_code = row[0]
             ret = os.popen('python stock_service.py --innerCode ' + str(inner_code))
             data = ret.readlines()[-1].strip().split(',')
+            if not data[0].isdigit():
+                continue
             if int(data[0]) == -1:
                 continue
 

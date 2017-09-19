@@ -20,7 +20,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--innerCode', type=int, default='1',
         help='stock inner code')
 #获得checkpoint路径
-parser.add_argument('--checkpointDir', type=str, default='D:/ai/stock-predictor/model/cloud/runs/1504922801/checkpoints/',
+parser.add_argument('--checkpointDir', type=str, default='model/cloud/runs/1505107245/checkpoints/',
                         help='output model path')
 FLAGS, _ = parser.parse_known_args()
 
