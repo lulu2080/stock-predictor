@@ -7,7 +7,7 @@ import csv
 temp_data_path = 'd:/tmp/'
 
 def main():
-    get_stock_data(1)
+    get_stock_data(3)
 
 def get_stock_data(inner_code):
     try:
@@ -16,7 +16,8 @@ def get_stock_data(inner_code):
         
         #按股票代码+交易时间升序排序，每四行滑动依次迭代构建训练数据集。
         cur = conn.cursor()
-        sql = 'SELECT InnerCode, DATE(TradingDay) TradeDate, TurnoverValue, OpenPrice, ClosePrice, HighPrice, ClosePrice from qt_dailyquote WHERE InnerCode=%s and OpenPrice > 0  ORDER BY InnerCode, TradingDay ASC'
+#        sql = 'SELECT InnerCode, DATE(TradingDay) TradeDate, TurnoverValue, OpenPrice, ClosePrice, HighPrice, ClosePrice from qt_dailyquote WHERE InnerCode=%s and OpenPrice > 0  ORDER BY InnerCode, TradingDay ASC'
+        sql = 'SELECT InnerCode, DATE(TradingDay) TradeDate, TurnoverValue, OpenPrice, ClosePrice, HighPrice, TurnoverRate from QT_Performance WHERE InnerCode=%s and OpenPrice > 0 and NOT ISNULL(TurnoverRate) ORDER BY InnerCode, TradingDay ASC'
         rowcount = cur.execute(sql, (inner_code))
         print("共查询到{:d}条行情数据。\n".format(rowcount))
 
@@ -24,10 +25,11 @@ def get_stock_data(inner_code):
 
         results=cur.fetchall()        
         for row in results:
-            data_row = np.zeros([3], dtype=float)
+            data_row = np.zeros([4], dtype=float)
             data_row[0] = row[2]    #成交额
             data_row[1] = row[3]    #开盘价
             data_row[2] = row[4]    #收盘价
+            data_row[3] = row[6]    #换手率
             
             q.append(data_row)
             if len(q) >= 4:
@@ -52,7 +54,7 @@ def organize_data(q):
     else:
         label = 2
 
-    return [q[0][0], q[1][0], q[2][0], label]
+    return [q[0][0], q[1][0], q[2][0], q[0][3], q[1][3], q[2][3], label]
 
 #def organize_data(q):
 #    if abs(q[1][2] - q[1][1]) / q[1][1] <= 0.005:
@@ -68,7 +70,7 @@ def write_to_csv(data, inner_code):
     csv_filepath = temp_data_path + str(inner_code) + '.csv'
     csvfile = open(csv_filepath, 'w', newline='')
     writer = csv.writer(csvfile)
-    writer.writerow([0, 0, 0, 0, 0, 0])
+    writer.writerow([0, 0, 0, 0, 0, 0, 0])
     for d in data:
         writer.writerow(d)   
     csvfile.close()

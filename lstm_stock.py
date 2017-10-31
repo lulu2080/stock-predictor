@@ -57,13 +57,14 @@ FLAGS, _ = parser.parse_known_args()
 #n_hidden = 400
 
 # Parameters
-batch_size = 60
-time_step = 6
-learning_rate = 0.0006
+batch_size = 30
+time_step = 5
+#learning_rate = 0.0006
+learning_rate = 1e-4
 num_epochs = 10000
 evaluate_every = 200000
 display_step = 200000
-n_input = 3
+n_input = 6
 num_classes = 3
 checkpoint_every = 200000
 num_checkpoints = 20
@@ -120,7 +121,7 @@ def RNN(x, weights, biases):
     # 2-layer LSTM, each layer has n_hidden units.
     # Average Accuracy= 95.20% at 50k iter
     rnn_cell = rnn.MultiRNNCell([rnn.BasicLSTMCell(n_hidden), rnn.BasicLSTMCell(n_hidden)])
-#    init_state = rnn_cell.zero_state(batch_size*time_step, dtype = tf.float32)
+#    h0 = rnn_cell.zero_state(batch_size, dtype=tf.float32)
 
     # 1-layer LSTM with n_hidden units but with lower accuracy.
     # Average Accuracy= 90.60% 50k iter
@@ -129,6 +130,7 @@ def RNN(x, weights, biases):
 
     # generate prediction
 #    outputs, states = rnn.static_rnn(rnn_cell, x, dtype=tf.float32)
+#    outputs, states = tf.nn.dynamic_rnn(rnn_cell, x, initial_state=h0, dtype=tf.float32)
     outputs, states = tf.nn.dynamic_rnn(rnn_cell, x, dtype=tf.float32)
 
     # there are n_input outputs but

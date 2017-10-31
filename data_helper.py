@@ -6,22 +6,22 @@ import pandas as pd
 from tensorflow.python.lib.io import file_io
 
 #local read mode
-#f=open('stock_data.csv')
-#df=pd.read_csv(f)     #读入股票数据
-#data_x=df.iloc[:,0:3].values   #取前3列
-#data_y=df.iloc[:,3].values     #取第4列
-#y_onehot = np.zeros([len(data_y), 3], dtype=float)
-#y_onehot[np.arange(data_y.shape[0]), data_y] = 1.0
-#f.close()
+f=open('stock_data.csv')
+df=pd.read_csv(f)     #读入股票数据
+data_x=df.iloc[:,0:6].values   #取前3列
+data_y=df.iloc[:,6].values     #取第4列
+y_onehot = np.zeros([len(data_y), 3], dtype=float)
+y_onehot[np.arange(data_y.shape[0]), data_y] = 1.0
+f.close()
 
 #ali-oss read mode
-data_file_path = os.path.join('oss://myaitest001/stock-predictor/', 'stock_data.csv')
-with file_io.FileIO(data_file_path, mode="r") as f:
-    df=pd.read_csv(f)     #读入股票数据
-    data_x=df.iloc[:,0:3].values   #取前3列
-    data_y=df.iloc[:,3].values     #取第4列
-    y_onehot = np.zeros([len(data_y), 3], dtype=float)
-    y_onehot[np.arange(data_y.shape[0]), data_y] = 1.0
+#data_file_path = os.path.join('oss://myaitest001/stock-predictor/', 'stock_data.csv')
+#with file_io.FileIO(data_file_path, mode="r") as f:
+#    df=pd.read_csv(f)     #读入股票数据
+#    data_x=df.iloc[:,0:3].values   #取前3列
+#    data_y=df.iloc[:,3].values     #取第4列
+#    y_onehot = np.zeros([len(data_y), 3], dtype=float)
+#    y_onehot[np.arange(data_y.shape[0]), data_y] = 1.0
 
 #——————————获取训练集——————————
 #def get_train_data(batch_size=60, time_step=20, train_begin=0, train_end=6000):
