@@ -11,7 +11,27 @@ import pandas as pd
 import future_data_loader as fdl
 
 FLAGS = None
+batch_size = 30
 time_step = 5
+
+def build_dataset(time_step=20, test_begin=6000):
+    data_test  = data_x[test_begin:test_begin+2000]
+    label_test = y_onehot[test_begin:test_begin+2000]
+    mean = np.mean(data_test, axis=0)
+    std = np.std(data_test, axis=0)
+    normalized_test_data = (data_test-mean) / std  #标准化
+    len_data = len(normalized_test_data)
+    size = (len_data + time_step - 1) // time_step  #有size个sample 
+    test_x,test_y = [],[]
+    for i in range(size - 1):
+       x = normalized_test_data[len_data-(i+1)*time_step:len_data-i*time_step]
+       y = label_test[len_data-(i+1)*time_step:len_data-i*time_step]
+       test_x.append(x.tolist())
+       test_y.append(y.tolist())
+    test_x = test_x[::-1]
+    test_y = test_y[::-1]
+    return mean, std, test_x, test_y
+
 
 # Parameters
 # ==================================================
@@ -42,14 +62,21 @@ normalized_eval_data = (data_x-mean) / std  #标准化
 len_data = len(normalized_eval_data)
 size = (len_data + time_step - 1) // time_step  #有size个sample
 
+batch_index = []
 eval_x = []
 #for i in range(size - 1):
-for i in range(30):
-   x = normalized_eval_data[len_data-(i+1)*time_step:len_data-i*time_step]
-   eval_x.append(x.tolist())
-eval_x = eval_x[::-1]
+for i in range(len_data - time_step + 1):
+    #构建一个batch
+    if i % batch_size == 0:
+        batch_index.append(i)
+    #构建一个序列(time_step)
+#   x = normalized_eval_data[len_data-(i+1)*time_step:len_data-i*time_step]
+    x = normalized_eval_data[len_data-time_step-i:len_data-i]
+    eval_x.append(x.tolist())
+#eval_x = eval_x[::-1]
+batch_index = batch_index[::-1]
 #print(eval_x)
-print('len:' + str(len_data) + '; size:' + str(size) + 'eval_x_len:' + str(len(eval_x)))
+
 # Evaluation
 # ==================================================
 
@@ -73,7 +100,10 @@ with graph.as_default():
         get_result = graph.get_operation_by_name("get_result").outputs[0]
         get_rate = graph.get_operation_by_name("get_rate").outputs[0]
 
-        sess.run([get_result, get_rate], {input_x: eval_x[0:]})
+        for i in range(len(batch_index) - 1):
+            x_batch = eval_x[batch_index[i + 1]:batch_index[i]]
+            sess.run([get_result, get_rate], {input_x: x_batch[0:]})
+
         pred_result, pred_rate = sess.run([p_result, p_rate])
         
         date_str = lastTradingDay.strftime('%Y-%m-%d %H:%M:%S')
