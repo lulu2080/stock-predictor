@@ -14,25 +14,6 @@ FLAGS = None
 batch_size = 30
 time_step = 5
 
-def build_dataset(time_step=20, test_begin=6000):
-    data_test  = data_x[test_begin:test_begin+2000]
-    label_test = y_onehot[test_begin:test_begin+2000]
-    mean = np.mean(data_test, axis=0)
-    std = np.std(data_test, axis=0)
-    normalized_test_data = (data_test-mean) / std  #标准化
-    len_data = len(normalized_test_data)
-    size = (len_data + time_step - 1) // time_step  #有size个sample 
-    test_x,test_y = [],[]
-    for i in range(size - 1):
-       x = normalized_test_data[len_data-(i+1)*time_step:len_data-i*time_step]
-       y = label_test[len_data-(i+1)*time_step:len_data-i*time_step]
-       test_x.append(x.tolist())
-       test_y.append(y.tolist())
-    test_x = test_x[::-1]
-    test_y = test_y[::-1]
-    return mean, std, test_x, test_y
-
-
 # Parameters
 # ==================================================
 parser = argparse.ArgumentParser()
@@ -44,7 +25,7 @@ parser.add_argument('--checkpointDir', type=str, default='model/cloud/runs/15095
                         help='output model path')
 FLAGS, _ = parser.parse_known_args()
 
-eval_file_path, lastTradingDay = fdl.get_future_data(FLAGS.contractCode, 5)
+eval_file_path, lastTradingDay = fdl.get_future_data(FLAGS.contractCode, 30)
 
 if eval_file_path is None:
     print(-1)

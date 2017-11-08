@@ -8,7 +8,7 @@ code=input('Please input a code:').upper()
 def FullCode(code):
     #根据用户输入的代码得到请求代码
     mapcode={'60':'sh'+code,'00':'sz'+code,'50':'f_'+code,'15':'fu_'+code,'RM':'h_'+code}
-    if (code[0] in list('abcdefghigklmnopqrstuvwxyz'.upper())) and (code[2:3]=='1' or code[2:3]=='0' or code[1:2]=='1' or code[1:2]=='0') :
+    if (code[0] in list('abcdefghijgklmnopqrstuvwxyz'.upper())) and (code[2:3]=='1' or code[2:3]=='0' or code[1:2]=='1' or code[1:2]=='0') :
         return code
     else:
         fullcode=mapcode[code[:2]]
@@ -41,7 +41,7 @@ def GetData(code):
     
     name_list={'sh':stock,'sz':stock,'f_':fund_f,'fu':fund_fu,'h_':fx}
     
-    if (code[0] in list('abcdefghigklmnopqrstuvwxyz'.upper())) and (code[2:3]=='1' or code[2:3]=='0' or code[1:2]=='1' or code[1:2]=='0') :
+    if (code[0] in list('abcdefghijgklmnopqrstuvwxyz'.upper())) and (code[2:3]=='1' or code[2:3]=='0' or code[1:2]=='1' or code[1:2]=='0') :
         for i in range(len(future)):
             print( future[i],': -->',data_list[i])
     else:
