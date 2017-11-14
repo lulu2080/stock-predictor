@@ -2,6 +2,7 @@
 
 import urllib
 import json
+import datetime
 import csv
 import pymysql as db
 
@@ -20,9 +21,9 @@ def main():
     code=input('Please input a code:').upper()
     fcode = fill_code(code)
     data = grab_data(fcode, 0)
-    contract_id = write_to_db(fcode, 0, data)
+    contract_id, row_count = write_to_db(fcode, 0, data)
     if contract_id > 0:
-        print('successfully! writed total row count:' + str(len(data)))
+        print('successfully! writed total row count:' + str(row_count))
     else:
         print('Failure!')
 
@@ -59,6 +60,8 @@ def write_to_csv(data):
     return csv_filepath
 
 def write_to_db(fcode, period_type, data):
+    current_time = datetime.datetime.now()
+    rc = 0
     try:
         conn = db.Connect(host='101.37.60.132', 
                           user='root', passwd='funci@868', db='collected_data', port=3306, charset='utf8')
@@ -73,6 +76,9 @@ def write_to_db(fcode, period_type, data):
             return -1
 
         for d in data:
+            if datetime.datetime.strptime(d[0], '%Y-%m-%d %H:%M:%S') >= current_time:
+                continue
+            
             value = {'contract_id':contract_id, 'period_type':period_type, 'trade_date':d[0], 'open_price':d[1], 'close_price':d[4], 'high_price':d[2], 'low_price':d[3], 'turnover_volume':d[5]}
             
             rowcount = cur.execute(sql_2, value)
@@ -80,11 +86,12 @@ def write_to_db(fcode, period_type, data):
                 print('writing:' + ''.join(d) + '...', end='')
                 cur.execute(sql_0, value)
                 conn.commit()
+                rc += 1
                 print('ok!')
             else:
                 print('already existed, skipped!')
         
-        return contract_id
+        return contract_id, rc
     except db.Error as e:
         print("Mysql Error {:d}:{:s}\n".format(e.args[0], e.args[1]))
     finally:
@@ -94,9 +101,9 @@ def write_to_db(fcode, period_type, data):
 def do_data(contract_code, period_type):
     fcode = fill_code(contract_code)
     data = grab_data(fcode, period_type)
-    contract_id = write_to_db(fcode, period_type, data)
+    contract_id, row_count = write_to_db(fcode, period_type, data)
     if contract_id > 0:
-        print('successfully! writed total row count:' + str(len(data)))
+        print('successfully! writed total row count:' + str(row_count))
         return contract_id
     else:
         print('failure!')

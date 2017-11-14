@@ -60,20 +60,31 @@ def get_train_data(batch_size=60, time_step=20, train_begin=0, train_end=6000):
     return batch_index[::-1], train_x, train_y
 
 #——————————获取测试集——————————
-def get_test_data(time_step=20, test_begin=6000):
+def get_test_data(batch_size=60, time_step=20, test_begin=6000):
     data_test  = data_x[test_begin:test_begin+2000]
     label_test = y_onehot[test_begin:test_begin+2000]
     mean = np.mean(data_test, axis=0)
     std = np.std(data_test, axis=0)
     normalized_test_data = (data_test-mean) / std  #标准化
     len_data = len(normalized_test_data)
-    size = (len_data + time_step - 1) // time_step  #有size个sample 
+#    size = (len_data + time_step - 1) // time_step  #有size个sample
+    batch_index = []
     test_x,test_y = [],[]
-    for i in range(size - 1):
-       x = normalized_test_data[len_data-(i+1)*time_step:len_data-i*time_step]
-       y = label_test[len_data-(i+1)*time_step:len_data-i*time_step]
-       test_x.append(x.tolist())
-       test_y.append(y.tolist())
-    test_x = test_x[::-1]
-    test_y = test_y[::-1]
-    return mean, std, test_x, test_y
+#    for i in range(size - 1):
+#       x = normalized_test_data[len_data-(i+1)*time_step:len_data-i*time_step]
+#       y = label_test[len_data-(i+1)*time_step:len_data-i*time_step]
+#       test_x.append(x.tolist())
+#       test_y.append(y.tolist())
+#    test_x = test_x[::-1]
+#    test_y = test_y[::-1]
+    for i in range(len_data - time_step + 1):
+        #构建一个batch
+        if i % batch_size == 0:
+            batch_index.append(i)
+        #构建一个序列(time_step)
+        x = normalized_test_data[len_data-time_step-i:len_data-i]
+        y = label_test[len_data-time_step-i:len_data-i]
+        test_x.append(x.tolist())
+        test_y.append(y.tolist())
+    
+    return batch_index[::-1], test_x, test_y

@@ -21,11 +21,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--contractCode', type=str, default='CU0',
         help='future contract code')
 #获得checkpoint路径
-parser.add_argument('--checkpointDir', type=str, default='model/cloud/runs/1509527183/checkpoints/',
+parser.add_argument('--checkpointDir', type=str, default='model/cloud/runs/1510136356/checkpoints/',
                         help='output model path')
 FLAGS, _ = parser.parse_known_args()
 
-eval_file_path, lastTradingDay = fdl.get_future_data(FLAGS.contractCode, 30)
+eval_file_path, lastTradingDay = fdl.get_future_data(FLAGS.contractCode, 5)
 
 if eval_file_path is None:
     print(-1)
@@ -41,7 +41,6 @@ mean = np.mean(data_x, axis=0)
 std = np.std(data_x, axis=0)
 normalized_eval_data = (data_x-mean) / std  #标准化
 len_data = len(normalized_eval_data)
-size = (len_data + time_step - 1) // time_step  #有size个sample
 
 batch_index = []
 eval_x = []

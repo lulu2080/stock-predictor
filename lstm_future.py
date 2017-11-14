@@ -76,7 +76,7 @@ n_hidden = 400
 
 print("Loaded data...")
 batch_index, train_x, train_y = future_data_helper.get_train_data(batch_size, time_step, train_begin, train_end)
-_, _, test_x, test_y = future_data_helper.get_test_data(time_step, train_end)
+test_batch_index, test_x, test_y = future_data_helper.get_test_data(batch_size, time_step, 2000)
 #print("train_x")
 #print(train_x)
 #print("train_y")
