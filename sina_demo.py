@@ -1,6 +1,6 @@
 #encoding:utf-8
 
-import urllib
+import urllib.request
 
 #定义函数，用户输入股票代码可从新浪财经接口取数据
 code=input('Please input a code:').upper()

@@ -5,7 +5,7 @@ import numpy as np
 import decimal
 import csv
 
-temp_data_path = 'd:/tmp/'
+temp_data_path = '/tmp/ai-temp-files/'
 sql_0 = 'SELECT trade_date, open_price, close_price, high_price, low_price, turnover_volume from future_quote WHERE contract_id=%s and period_type=%s and open_price > 0 and close_price > 0 ORDER BY trade_date DESC'
 
 def main():

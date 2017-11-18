@@ -1,6 +1,6 @@
 #encoding:utf-8
 
-import urllib
+import urllib.request
 import json
 import datetime
 import csv
@@ -76,6 +76,8 @@ def write_to_db(fcode, period_type, data):
             return -1
 
         for d in data:
+            if not ':' in d[0]:
+                d[0] = d[0] + ' 23:59:59'
             if datetime.datetime.strptime(d[0], '%Y-%m-%d %H:%M:%S') >= current_time:
                 continue
             
