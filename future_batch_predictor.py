@@ -31,7 +31,7 @@ def main():
             if int(data[0]) == -1:
                 continue
 
-            value = {'contract_id':contract_id, 'predict_period':30, 'predict_time':data[2], 'predict_result':data[0], 'acc_rate':data[1], 'actual_result':0}
+            value = {'contract_id':contract_id, 'predict_period':30, 'predict_time':data[2], 'predict_result':data[0], 'acc_rate':data[1], 'actual_result':-1}
 
             rowcount = cur.execute(sql_1, value)
             if rowcount <= 0:
